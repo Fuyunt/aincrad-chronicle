@@ -1,0 +1,181 @@
+'use strict';
+const RANKING_20221123=`
+Fuyunter|26
+Sin|25
+Vaelor|24
+Aizel|24
+Veyne|24
+Galen|24
+Lysette|24
+Rocus|24
+Shad|23
+Rara|23
+Mirabel|23
+Ordan|23
+Keil|23
+Sephyr|23
+Jarek|23
+Light|23
+Feris|22
+Torven|22
+Rigan|22
+Arel|22
+Elmine|22
+Hart|22
+Silas|22
+Selvis|21
+Neru|22
+Bastian|22
+Aster|21
+Erya|22
+Kardo|21
+Darg|21
+Lafel|21
+Graado|21
+Moritz|21
+Makito|21
+Tressa|21
+Milon|21
+Reig|20
+Solin|21
+Kaido|21
+Hanoa|20
+Rinel|21
+Orwen|20
+Dais|21
+Kiesel|20
+Azran|21
+Felina|20
+Nemia|21
+Sizu|21
+Naeris|21
+Velna|20
+Varden|21
+Lenoa|20
+Woln|21
+Volto|20
+Beryl|21
+Mirea|20
+Kaine|20
+Ardis|20
+Rodol|20
+Nail|20
+Yelis|20
+Marina|20
+Neris|20
+Dellis|20
+Lucia|19
+Frayne|20
+Zed|19
+Eron|20
+Rowen|19
+Sail|20
+Karon|19
+Ferin|20
+Elva|19
+Kail|20
+Juno|19
+Myra|20
+Elaia|19
+Rint|20
+Horst|19
+Olen|20
+Breu|19
+Nisel|19
+Harth|19
+Terry|19
+Lark|19
+Wila|19
+Arven|19
+Liesel|19
+Dorven|19
+Ein|19
+Merea|19
+Drein|19
+Iroha|19
+Suma|19
+Revan|19
+Ensel|18
+Yuna|18
+Lem|18
+Tildo|18
+Zarek|18`.trim().split('\n').map((line,i)=>{const [name,lvl]=line.split('|');return {name,level:Number(lvl),originRank:i+1,score:10000-i*100}});
+const SKILL_DEFS=[
+ {id:'onehand',name:'片手用直剣',mastery:566,icon:'skill_onehand'},
+ {id:'parry',name:'武器防御',mastery:570,icon:'skill_parry'},
+ {id:'regen',name:'戦闘時回復・初級',mastery:292,icon:'skill_regen'},
+ {id:'acrobat',name:'軽業',mastery:186,icon:'skill_acrobat'},
+ {id:'dash',name:'疾走',mastery:92,icon:'skill_dash'}
+];
+const FRIEND_DATA={
+ Rara:{level:23,weapon:'蒼紋の長槍',weaponType:'spear',armor:'軽装の槍兵用防具',role:'槍・後衛／指揮',guild:null,desc:'ララ隊のリーダー。フユを「フユ坊」と呼ぶ。'},
+ Sin:{level:25,weapon:'封門騎士の黒断剣',weaponType:'greatsword',armor:'銀の肩鎧・黒い高襟の戦闘服',role:'両手大剣・前衛',guild:null,desc:'迷宮の封門まで同行した実力者。'},
+ Yuna:{level:18,weapon:'鋼鉄のグレートソード',weaponType:'greatsword',armor:'紺のマント・黒銀の軽鎧',role:'両手大剣',guild:null,desc:'落ち着いた剣士。'},
+ Light:{level:23,weapon:'短剣',weaponType:'dagger',armor:'軽装の革防具',role:'短剣・前衛',guild:null,desc:'明るい性格で、時に盾も使う。'},
+ Makito:{level:21,weapon:'片手棍・大盾',weaponType:'mace',armor:'銀の肩鎧・深緑のマント',role:'盾役',guild:null,desc:'眼鏡をかけた、慎重で穏やかな剣士。'},
+ Sizu:{level:21,weapon:'両手斧',weaponType:'axe',armor:'深紺の高襟装備・肩鎧',role:'両手斧・後衛',guild:null,desc:'静かで几帳面。ララ隊の財政を担当。'}
+};
+const WEAPON_GOODS=[
+ {id:'rusty',name:'見習いの直剣',atk:5,price:210,floor:1,kind:'sword'},
+ {id:'iron',name:'鉄の片手剣',atk:8,price:360,floor:1,kind:'sword'},
+ {id:'thin',name:'風切りの細剣',atk:10,price:580,floor:1,kind:'rapier'},
+ {id:'guard',name:'鋼の長剣',atk:12,price:830,floor:1,kind:'sword'},
+ {id:'shopbest',name:'鍛造鋼の直剣',atk:14,price:1380,floor:1,kind:'sword'},
+ {id:'dag1',name:'斥候の短剣',atk:7,price:280,floor:1,kind:'dagger'},
+ {id:'spear1',name:'歩兵の長槍',atk:11,price:690,floor:1,kind:'spear'},
+ {id:'axe1',name:'樵の戦斧',atk:13,price:940,floor:1,kind:'axe'},
+ {id:'great1',name:'鉄の両手大剣',atk:14,price:1250,floor:1,kind:'greatsword'}
+];
+const ARMOR_GOODS=[
+ {id:'cloak',name:'旅人の外套',def:3,price:310,slot:'外套',floor:1,icon:'cloak'},
+ {id:'hand',name:'革の手甲',def:7,price:420,slot:'手',floor:1,icon:'gloves'},
+ {id:'chest',name:'鋲打ち胸当て',def:16,price:930,slot:'胴',floor:1,icon:'chest'},
+ {id:'boots',name:'斥候のブーツ',def:9,price:620,slot:'足',floor:1,icon:'boots'},
+ {id:'hat',name:'革の額当て',def:4,price:260,slot:'頭',floor:1,icon:'shoulder'},
+ {id:'shoulder',name:'鋼縁の肩当て',def:6,price:480,slot:'肩',floor:1,icon:'shoulder'},
+ {id:'armor2',name:'上質革の胸甲',def:20,price:1600,slot:'胴',floor:2,icon:'chest'},
+ {id:'boots2',name:'青銅の脚甲',def:13,price:1180,slot:'足',floor:2,icon:'legs'}
+];
+const CONSUMABLES=[
+ {id:'potion',name:'通常回復ポーション',price:160,heal:240,floor:1,icon:'item_small'},
+ {id:'hiPotion',name:'高品質回復ポーション',price:360,heal:550,floor:1,icon:'item_medium'},
+ {id:'antidote',name:'解毒薬',price:120,heal:0,floor:1,icon:'item_cleanse'},
+ {id:'rations',name:'携帯食料',price:30,heal:25,floor:1,icon:'item_food'},
+ {id:'herbs',name:'薬草包み',price:75,heal:90,floor:1,icon:'item_herb'},
+ {id:'crystalHeal',name:'回復結晶',price:2000,heal:950,floor:2,icon:'crystal_healing',crystal:true},
+ {id:'crystalTeleport',name:'転移結晶',price:2600,heal:0,floor:2,icon:'crystal_teleport',crystal:true},
+ {id:'crystalAntidote',name:'解毒結晶',price:1800,heal:0,floor:2,icon:'crystal_antidote',crystal:true},
+ {id:'crystalAttack',name:'戦技結晶',price:4300,heal:0,floor:4,icon:'crystal_attack',crystal:true},
+ {id:'crystalUtility',name:'支援結晶',price:3300,heal:0,floor:3,icon:'crystal_utility',crystal:true}
+];
+for(let floor=2;floor<=100;floor++){
+ const metal=['青銅','白鋼','黒鋼','紅鉄','蒼鉄','銀鋼'][(floor-2)%6];
+ WEAPON_GOODS.push({id:'w'+floor,name:`第${floor}層・${metal}の直剣`,atk:15+(floor-2)*3,price:1500+floor*410,floor,kind:'sword'});
+ WEAPON_GOODS.push({id:'g'+floor,name:`第${floor}層・${metal}の大剣`,atk:17+(floor-2)*4,price:1680+floor*460,floor,kind:'greatsword'});
+ ARMOR_GOODS.push({id:'a'+floor,name:`第${floor}層・${metal}胸甲`,def:18+floor*3,price:950+floor*480,floor,slot:'胴',icon:'chest'});
+ CONSUMABLES.push({id:'p'+floor,name:`第${floor}層・濃縮回復薬`,price:320+floor*80,heal:430+floor*90,floor,icon:'item_medium'});
+}
+const QUESTS=[
+ {id:'bridge',title:'古い橋の石工印',zone:'街道・石橋',floors:1,steps:2,exp:180,col:320,items:{herbs:1},desc:'橋の欄干に残された刻印を写し取り、依頼人へ届ける。'},
+ {id:'plant',title:'薬草師の依頼',zone:'トールバーナ近郊の草原',floors:1,steps:2,exp:220,col:260,items:{antidote:1},desc:'薬草師の指定する野草を探す。'},
+ {id:'guard',title:'北門の見回り',zone:'北門から丘陵道',floors:1,steps:3,exp:300,col:410,items:{potion:2},desc:'巡回路の不審な足跡を調べる。'},
+ {id:'boar',title:'畑を荒らす獣',zone:'農地と石環平地',floors:1,steps:3,exp:340,col:460,items:{rations:2},desc:'畑の近くに出没するイノシシ型Mobの痕跡を探す。'},
+ {id:'ruins',title:'遺跡の残響',zone:'林間遺構',floors:1,steps:4,exp:470,col:650,items:{hiPotion:1},desc:'古い建造物の入口と安全な帰路を確認する。'},
+ {id:'smith',title:'鍛冶屋の失くし物',zone:'旧監視塔周辺',floors:1,steps:3,exp:290,col:510,items:{herbs:2},desc:'鍛冶職人が街道で落とした革袋を回収する。'},
+ {id:'crystal',title:'結晶鉱床の微光',zone:'第2層・岩盤洞窟',floors:2,steps:4,exp:820,col:980,items:{crystalHeal:1},desc:'結晶片を採取して安全な帰路を調査する。'},
+ {id:'rareblade',title:'蒼い碑文の試練',zone:'第3層・石廟',floors:3,steps:7,exp:1600,col:1900,items:{},rare:{name:'蒼碑の細剣',atk:23,slot:'武器',kind:'rapier'},desc:'碑文の謎を解く難度の高い探索依頼。武器報酬は極めて稀。'}
+];
+// 追加の依頼は進行階層ごとに入れ替わる。装備品報酬は希少クエストに限定する。
+for(let f=1;f<=100;f++){
+ const names=[['街道の道標調査','主街区近郊の街道'],['水場の安全確認','林間の小川'],['廃墟に残る足跡','林間遺構'],['旅商人の落とし物','野外探索の街道']];
+ names.forEach(([name,zone],j)=>QUESTS.push({id:`side${f}_${j}`,title:`第${f}層・${name}`,zone,floors:f,steps:2+j,exp:120+f*100+j*65,col:160+f*100+j*55,items:j===0?{potion:1}:j===2?{antidote:1}:{rations:1},desc:`${zone}の調査を行い、依頼主に結果を届ける。`}));
+}
+const NPC_NAMES=['Rara','Sin','Yuna','Light','Makito','Sizu'];
+const SCENES={
+ 'トールバーナ・道具屋':'town_shop','トールバーナ・広場':'town_dusk','トールバーナ・宿屋':'town_inn',
+ 'トールバーナ・食堂':'town_inn','トールバーナ・鍛冶屋':'town_shop',
+ 'トールバーナ・武器屋':'town_shop','トールバーナ・防具屋':'town_shop',
+ '石環平地':'field_dusk','林間遺構':'forest','峡谷の石橋':'canyon','迷宮区入口':'labyrinth_approach',
+ '迷宮区・回廊':'labyrinth_inside','迷宮区・ボス扉':'labyrinth_inside','主街区':'town_dusk',
+ '野外探索':'field_day','林間':'forest','峡谷':'canyon','迷宮区':'labyrinth_inside'
+};
